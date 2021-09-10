@@ -28,7 +28,6 @@ namespace GPUTrail
 		[SerializeField] protected TrailData trailData = new TrailData();
 		protected DisposableMaterial material;
 
-
 		protected void UpdateBuffer()
 		{
 			if (this.trailPos.Count != this.trailData.trailGPUData.Size) this.trailData.trailGPUData.InitBuffer(this.trailPos.Count, true);
