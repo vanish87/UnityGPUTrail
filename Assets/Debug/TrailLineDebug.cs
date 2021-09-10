@@ -18,11 +18,16 @@ namespace GPUTrail
 			[Shader(Name = "_MiterLimit")] public float miterLimit = 0.75f;
 			[Shader(Name = "_zScale")] public bool zScale = true;
 			[Shader(Name = "_TrailData")] public GPUBufferVariable<float4> trailGPUData = new GPUBufferVariable<float4>();
+			
+			public List<Gradient> gradients = new List<Gradient>();
+			[Shader(Name = "_TrailGradientTexture")] public Texture2D gradientTexture;
+			[Shader(Name = "_TrailGradientTextureHeight")] public int gradientTextureHeight;
 		}
 		[SerializeField] protected List<float4> trailPos = new List<float4>();
 		[SerializeField] protected Shader shader;
 		[SerializeField] protected TrailData trailData = new TrailData();
 		protected DisposableMaterial material;
+
 
 		protected void UpdateBuffer()
 		{
@@ -31,6 +36,21 @@ namespace GPUTrail
 			{
 				this.trailData.trailGPUData.CPUData[i] = this.trailPos[i];
 			}
+		}
+		protected void UpdateGradient()
+		{
+			var tex = this.trailData.gradientTexture;
+			if (tex == null || tex.height != this.trailData.gradients.Count)
+			{
+				this.trailData.gradientTexture?.DestoryObj();
+				this.trailData.gradientTexture = PalletTexture.GenerateGradientTexture(this.trailData.gradients);
+			} 
+			else 
+			{
+				PalletTexture.UpdateGradientTexture(this.trailData.gradientTexture, this.trailData.gradients);
+			}
+
+			this.trailData.gradientTextureHeight = this.trailData.gradientTexture.height;
 		}
 		protected void OnEnable()
 		{
@@ -45,6 +65,7 @@ namespace GPUTrail
 		protected void Update()
 		{
 			this.UpdateBuffer();
+			this.UpdateGradient();
 
 			Material mat = this.material;
 			this.trailData.UpdateGPU(mat);
