@@ -182,9 +182,10 @@ MonoBehaviour:
     z: 0.78
     w: 1
   shader: {fileID: 4800000, guid: 6ca08b9230d4ddf44851ed510dd62d95, type: 3}
-  thiness: 0.1
-  miterLimit: 0.75
-  zScale: 1
+  trailData:
+    thiness: 0.1
+    miterLimit: 0.75
+    zScale: 1
 --- !u!4 &5092551
 Transform:
   m_ObjectHideFlags: 0
