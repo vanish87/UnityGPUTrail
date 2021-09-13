@@ -110,11 +110,13 @@ void UpdateFromSourceBuffer (uint3 id : SV_DispatchThreadID)
     const int pid = hid;
     SourceType p = _SourceBuffer[pid];
 
+    //consume a new node anyway
     int nid = _TrailNodeIndexBufferConsume.Consume();
     TrailNode node = _TrailNodeBuffer[nid];
     node = InitNode(nid, node);
     node.pos = p;
 
+    //add new node before first node
     if(firstid != -1)
     {
         TrailNode first = _TrailNodeBuffer[firstid];
@@ -126,6 +128,7 @@ void UpdateFromSourceBuffer (uint3 id : SV_DispatchThreadID)
 
     header.first = nid;
 
+    //update local idx for each node
     int localIdx = 0;
     int last = -1;
     int curr = nid;
@@ -139,6 +142,7 @@ void UpdateFromSourceBuffer (uint3 id : SV_DispatchThreadID)
         curr = node.next;
     }
 
+    //remove last new if it reaches max length
     if(currentlength == maxLength)
     {
         int prev = _TrailNodeBuffer[last].prev;
