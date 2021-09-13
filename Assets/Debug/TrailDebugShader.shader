@@ -94,7 +94,7 @@ Shader "Unlit/TrailDebugShader"
         o.p1 = p1;
         o.p2 = p2;
         o.p3 = p3;
-		o.uv12 = float2(id, id+1)/(_TrailDataCount-1);
+		o.uv12 = saturate(float2(id, id+1)/(_TrailDataCount-1));
 		return o;
 	}
 
