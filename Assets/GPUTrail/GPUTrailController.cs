@@ -29,23 +29,24 @@ namespace GPUTrail
 			InitHeader,
 			InitNode,
 			EmitTrail,
-			UpdateFromSource,
-			UpdateFromParticle,
+			UpdateSourceBuffer,
+			UpdateFromSourceBuffer,
 			AppendDeadToNodePool,
 		}
 		[System.Serializable]
 		public class GPUTrailData : GPUContainer
 		{
 			[Shader(Name = "_TrailHeaderBuffer")] public GPUBufferVariable<TrailHeader> trailHeaderBuffer = new GPUBufferVariable<TrailHeader>();
+			[Shader(Name = "_TrailHeaderIndexBufferAppend")] public GPUBufferAppendConsume<int> trailHeaderIndexBufferAppend = new GPUBufferAppendConsume<int>();
+			[Shader(Name = "_TrailHeaderIndexBufferConsume")] public GPUBufferAppendConsume<int> trailHeaderIndexBufferConsume = new GPUBufferAppendConsume<int>();
 			[Shader(Name = "_TrailNodeBuffer")] public GPUBufferVariable<TrailNode> trailNodeBuffer = new GPUBufferVariable<TrailNode>();
 			[Shader(Name = "_TrailNodeIndexBufferAppend")] public GPUBufferAppendConsume<int> trailNodeIndexBufferAppend = new GPUBufferAppendConsume<int>();
 			[Shader(Name = "_TrailNodeIndexBufferConsume")] public GPUBufferAppendConsume<int> trailNodeIndexBufferConsume = new GPUBufferAppendConsume<int>();
 			[Shader(Name = "_TrailNodeIndexDeadBufferAppend")] public GPUBufferAppendConsume<int> trailNodeIndexDeadBufferAppend = new GPUBufferAppendConsume<int>();
 			[Shader(Name = "_TrailNodeIndexDeadBufferConsume")] public GPUBufferAppendConsume<int> trailNodeIndexDeadBufferConsume = new GPUBufferAppendConsume<int>();
 
-			//we need fixed particle buffer to update trails
+			//optional local buffer: sometimes a local copy of source buffer is necessary
 			[Shader(Name = "_SourceBuffer")] public GPUBufferVariable<T> sourceBuffer = new GPUBufferVariable<T>();
-
 			[Shader(Name = "_EmitTrailNum")] public int emitTrailNum = 2048;
 			[Shader(Name = "_EmitTrailLen")] public int emitTrailLen = 128;
 		}
@@ -71,11 +72,12 @@ namespace GPUTrail
 			var headNum = this.Configure.D.trailHeaderNum;
 			var nodeNum = this.Configure.D.trailNodeNum;
 			this.trailData.trailHeaderBuffer.InitBuffer(headNum);
-			this.trailData.trailNodeBuffer.InitBuffer(nodeNum);
+			this.trailData.trailHeaderIndexBufferAppend.InitAppendBuffer(headNum);
+			this.trailData.trailHeaderIndexBufferConsume.InitAppendBuffer(this.trailData.trailHeaderIndexBufferAppend);
 
+			this.trailData.trailNodeBuffer.InitBuffer(nodeNum);
 			this.trailData.trailNodeIndexBufferAppend.InitAppendBuffer(nodeNum);
 			this.trailData.trailNodeIndexBufferConsume.InitAppendBuffer(this.trailData.trailNodeIndexBufferAppend);
-
 			this.trailData.trailNodeIndexDeadBufferAppend.InitAppendBuffer(nodeNum);
 			this.trailData.trailNodeIndexDeadBufferConsume.InitAppendBuffer(this.trailData.trailNodeIndexDeadBufferAppend);
 
@@ -87,12 +89,10 @@ namespace GPUTrail
 				this.dispatcher.AddParameter(k, this.source.Buffer);
 			}
 
-			this.trailData.trailNodeIndexBufferAppend.ResetCounter();
-
 			this.dispatcher.Dispatch(Kernel.InitHeader, headNum);
 			this.dispatcher.Dispatch(Kernel.InitNode, nodeNum);
 
-			LogTool.AssertIsTrue(this.trailData.emitTrailLen >= 4);
+			LogTool.AssertIsTrue(this.trailData.emitTrailLen > 0);
 			this.dispatcher.Dispatch(Kernel.EmitTrail, this.trailData.emitTrailNum);
 
 			this.inited = true;
@@ -107,16 +107,17 @@ namespace GPUTrail
 		{
 			if (this.trailData.sourceBuffer.Size != this.source.Buffer.Size)
 			{
-				//Update trail buffer after particle buffer created
+				//Update trail buffer after source buffer created
 				this.trailData.sourceBuffer.InitBuffer(this.source.Buffer.Size);
 			}
 
 			var headerNum = this.Configure.D.trailHeaderNum;
 			var pNum = this.source.Buffer.Size;
 
-			this.dispatcher.Dispatch(Kernel.UpdateFromSource, pNum);
+			this.dispatcher.Dispatch(Kernel.UpdateSourceBuffer, pNum);
+
 			this.trailData.trailNodeIndexDeadBufferAppend.ResetCounter();
-			this.dispatcher.Dispatch(Kernel.UpdateFromParticle, headerNum);
+			this.dispatcher.Dispatch(Kernel.UpdateFromSourceBuffer, headerNum);
 
 			var counter = this.trailData.trailNodeIndexDeadBufferAppend.GetCounter();
 			if (counter > 0)
