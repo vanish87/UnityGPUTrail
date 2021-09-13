@@ -96,6 +96,11 @@ void UpdateSourceBuffer (uint3 id : SV_DispatchThreadID)
     _SourceBuffer[pid] = _ParticleBuffer[pid];
 }
 
+void UpdateTrailNode(inout TrailNode node, in SourceType p)
+{
+    node.pos = p;
+}
+
 [numthreads(TRAIL_BLOCK_SIZE,1,1)]
 void UpdateFromSourceBuffer (uint3 id : SV_DispatchThreadID)
 {
@@ -114,7 +119,7 @@ void UpdateFromSourceBuffer (uint3 id : SV_DispatchThreadID)
     int nid = _TrailNodeIndexBufferConsume.Consume();
     TrailNode node = _TrailNodeBuffer[nid];
     node = InitNode(nid, node);
-    node.pos = p;
+    UpdateTrailNode(node, p);
 
     //add new node before first node
     if(firstid != -1)
