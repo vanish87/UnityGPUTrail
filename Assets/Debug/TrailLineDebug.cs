@@ -16,7 +16,7 @@ namespace GPUTrail
 		{
 			public bool mouseDrag = false;
 			public float mouseDragDistanceThreshold = 0.1f;
-			[Shader(Name = "_Thiness")] public float thiness = 0.1f;
+			[Shader(Name = "_Thickness")] public float thickness = 0.1f;
 			[Shader(Name = "_MiterLimit")] public float miterLimit = 0.75f;
 			[Shader(Name = "_zScale")] public bool zScale = true;
 			[Shader(Name = "_TrailData")] public GPUBufferVariable<float4> trailGPUData = new GPUBufferVariable<float4>();

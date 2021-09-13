@@ -32,7 +32,7 @@ Shader "Unlit/TrailDebugShader"
 	StructuredBuffer<float4> _TrailData;
 	int _TrailDataCount;
 
-	float _Thiness;
+	float _Thickness;
 	float _MiterLimit;
 	int _zScale;
 
@@ -119,7 +119,7 @@ Shader "Unlit/TrailDebugShader"
 
 		float4 t1 = SampleXLod(_TrailGradientTexture, float2(uv12.x, 0), TrailThicknessGradient);
 		float4 t2 = SampleXLod(_TrailGradientTexture, float2(uv12.y, 0), TrailThicknessGradient);
-		float2 thickness = _Thiness * float2(t1.a, t2.a);
+		float2 thickness = _Thickness * float2(t1.a, t2.a);
 
 		float proj = _ProjectionParams.x;
         float near = _ProjectionParams.y;
