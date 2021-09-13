@@ -127,7 +127,7 @@ Shader "Unlit/TrailShader"
 
 		float2 uv = 0;//p[0].uv.xy;
 
-		float  thickness = 0.04;
+		float  thickness = 0.3;
 		
 		// determine the direction of each of the 3 segments (previous, current, next)
 		float2 v0 = normalize(p1.xy - p0.xy);
@@ -249,7 +249,7 @@ Shader "Unlit/TrailShader"
 	fixed4 frag(g2f i) : SV_Target
 	{
         // return 1;
-        return float4(1,1,1,0.3);
+        return float4(1,1,1,1);
 		return i.col;
 	}
 

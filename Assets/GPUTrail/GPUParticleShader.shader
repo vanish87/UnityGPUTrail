@@ -36,7 +36,7 @@ Shader "Unlit/GPUParticleShader"
         UNITY_SETUP_INSTANCE_ID(i);
         UNITY_TRANSFER_INSTANCE_ID(i, o);
 
-        float4 wp = float4(i.vertex.xyz * 0.01 + _ParticleBuffer[iid],1);
+        float4 wp = float4(i.vertex.xyz * 0.3 + _ParticleBuffer[iid],1);
         o.position = UnityObjectToClipPos(wp);
         o.color = 1;
         return o;
