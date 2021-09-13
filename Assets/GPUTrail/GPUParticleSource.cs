@@ -21,7 +21,10 @@ namespace GPUTrail
 			UpdateParticle,
 		}
 		public GPUBufferVariable<Particle> Buffer => this.particleBuffer;
-		protected const int ParticleNum = 1024;
+
+		public ISpace Space => UnityTools.Common.Space.LargeSpace;
+
+		protected const int ParticleNum = 1024 * 32;
 		[SerializeField] protected ComputeShader particleCS;
 		protected GPUBufferVariable<Particle> particleBuffer = new GPUBufferVariable<Particle>("_ParticleBuffer", ParticleNum);
 		protected ComputeShaderDispatcher<Kernel> dispatcher;
