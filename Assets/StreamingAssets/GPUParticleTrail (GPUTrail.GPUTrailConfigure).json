@@ -14,9 +14,9 @@
             }
         },
         "scale": {
-            "x": 1.0,
-            "y": 1.0,
-            "z": 1.0
+            "x": 10000.0,
+            "y": 10000.0,
+            "z": 10000.0
         },
         "displayAxis": false,
         "displayText": false,
@@ -28,6 +28,6 @@
             "a": 1.0
         }
     },
-    "trailHeaderNum": 128,
-    "trailNodeNum": 16384
+    "trailHeaderNum": 32768,
+    "trailNodeNum": 4227072
 }

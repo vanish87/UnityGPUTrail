@@ -52,11 +52,14 @@ namespace GPUTrail
 		}
 		public bool Inited => this.inited;
 		public GPUBufferVariable<TrailNode> Buffer => this.trailData.trailNodeBuffer;
+		public ISpace Space => this.Configure.D.space;
 
 		[SerializeField] protected ComputeShader trailCS;
 		[SerializeField] protected GPUTrailData trailData = new GPUTrailData();
 
 		protected GPUTrailConfigure Configure => this.configure ??= this.gameObject.FindOrAddTypeInComponentsAndChildren<GPUTrailConfigure>();
+
+
 		protected GPUTrailConfigure configure;
 		protected bool inited = false;
 		protected ComputeShaderDispatcher<Kernel> dispatcher;

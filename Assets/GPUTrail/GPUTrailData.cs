@@ -12,7 +12,7 @@ namespace GPUTrail
 	public struct TrailNode
 	{
 		public int prev, next, idx;
-		public int localIdx;
+		public float uvy;
 		public float3 pos;
 	}
 }

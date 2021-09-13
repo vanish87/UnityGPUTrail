@@ -6,7 +6,7 @@
 #pragma kernel UpdateFromSourceBuffer
 #pragma kernel AppendDeadToNodePool
 
-#define TRAIL_BLOCK_SIZE 1
+#define TRAIL_BLOCK_SIZE 256
 
 // #define SourceType Particle
 #define SourceType float3
@@ -45,7 +45,7 @@ TrailNode InitNode(int idx, TrailNode node)
     node = (TrailNode)0;
     node.prev = node.next = -1;
     node.idx = idx;
-    node.localIdx = 0;
+    node.uvy = 0;
     node.pos = 0;
     return node;
 }
@@ -135,9 +135,10 @@ void UpdateFromSourceBuffer (uint3 id : SV_DispatchThreadID)
     while(curr != -1)
     {
         TrailNode node = _TrailNodeBuffer[curr];
-        node.localIdx = localIdx++;
+        node.uvy = 1-(currentlength > 1?(localIdx * 1.0f)/(currentlength-1):0);
         _TrailNodeBuffer[curr] = node;
 
+        localIdx++;
         last = curr;
         curr = node.next;
     }

@@ -27,5 +27,5 @@ float4 SampleX(sampler2D tex, float2 uv, int gradient, int texHeight)
 }
 float4 SampleY(sampler2D tex, float2 uv, int gradient, int texHeight)
 {
-	return tex2D(tex, GradientToUV(uv.y, gradientm texHeight));
+	return tex2D(tex, GradientToUV(uv.y, gradient, texHeight));
 }

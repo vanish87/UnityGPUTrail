@@ -10,8 +10,7 @@ struct TrailHeader
 struct TrailNode
 {
 	int prev; int next; int idx;// data idx
-	// local idx for calculate uv
-	int localIdx;// idx for current trail == the xth node of trail = 0 is first node of trial
+	float uvy; // normalized length from first node
 	float3 pos;
 };
 
