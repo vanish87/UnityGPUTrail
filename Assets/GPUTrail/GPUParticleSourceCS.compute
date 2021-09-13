@@ -1,0 +1,28 @@
+#pragma kernel InitParticle
+#pragma kernel UpdateParticle
+#define PARTICLE_BLOCK_SIZE 256
+
+#include "UnityCG.cginc"
+
+RWStructuredBuffer<float3> _ParticleBuffer;
+int _ParticleBufferCount;
+
+[numthreads(PARTICLE_BLOCK_SIZE,1,1)]
+void InitParticle (uint3 id : SV_DispatchThreadID)
+{
+	const int pid = id.x;
+	if(pid >= _ParticleBufferCount) return;
+
+	_ParticleBuffer[pid] = float3(pid, 0, 0);
+}
+
+
+[numthreads(PARTICLE_BLOCK_SIZE,1,1)]
+void UpdateParticle (uint3 id : SV_DispatchThreadID)
+{
+	const int pid = id.x;
+	if(pid >= _ParticleBufferCount) return;
+
+	float t = _Time.x * 50;
+	_ParticleBuffer[pid] = float3(sin(t) + pid, sin(t), 0);
+}
