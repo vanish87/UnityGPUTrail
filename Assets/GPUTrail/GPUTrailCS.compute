@@ -28,7 +28,6 @@ ConsumeStructuredBuffer<int> _TrailNodeIndexBufferConsume;
 AppendStructuredBuffer<int> _TrailNodeIndexDeadBufferAppend;
 ConsumeStructuredBuffer<int> _TrailNodeIndexDeadBufferConsume;
 
-
 int _EmitTrailNum;
 int _EmitTrailLen;
 
@@ -111,21 +110,10 @@ void UpdateFromSourceBuffer (uint3 id : SV_DispatchThreadID)
     const int pid = hid;
     SourceType p = _SourceBuffer[pid];
 
-    if(currentlength == maxLength)
-    {
-        int last = firstid;
-        while(last != -1 && _TrailNodeBuffer[last].next != -1) last = _TrailNodeBuffer[last].next;
-        int prev = _TrailNodeBuffer[last].prev;
-        _TrailNodeBuffer[prev].next = -1;
-        _TrailNodeIndexDeadBufferAppend.Append(last);
-        currentlength--;
-    }
-
     int nid = _TrailNodeIndexBufferConsume.Consume();
-    header.currentlength = currentlength+1;
-
     TrailNode node = _TrailNodeBuffer[nid];
     node = InitNode(nid, node);
+    node.pos = p;
 
     if(firstid != -1)
     {
@@ -134,13 +122,32 @@ void UpdateFromSourceBuffer (uint3 id : SV_DispatchThreadID)
         node.next = first.idx;
         _TrailNodeBuffer[firstid] = first;
     }
+    _TrailNodeBuffer[nid] = node;
 
     header.first = nid;
-    node.pos = p;
-    // node.pos = float3(currentlength, 0, 0);
 
+    int localIdx = 0;
+    int last = -1;
+    int curr = nid;
+    while(curr != -1)
+    {
+        TrailNode node = _TrailNodeBuffer[curr];
+        node.localIdx = localIdx++;
+        _TrailNodeBuffer[curr] = node;
+
+        last = curr;
+        curr = node.next;
+    }
+
+    if(currentlength == maxLength)
+    {
+        int prev = _TrailNodeBuffer[last].prev;
+        _TrailNodeBuffer[prev].next = -1;
+        _TrailNodeIndexDeadBufferAppend.Append(last);
+    }
+
+    header.currentlength = min(currentlength+1, maxLength);
     _TrailHeaderBuffer[hid] = header;
-    _TrailNodeBuffer[nid] = node;
 }
 
 [numthreads(1,1,1)]
