@@ -26,5 +26,5 @@ void UpdateParticle (uint3 id : SV_DispatchThreadID)
 	float lid = pid % 128;
 	float offset = pid / 128 * 100;
 	float t = _Time.x * lid * 0.5;
-	_ParticleBuffer[pid] = float3(sin(t), cos(t), 0) * lid + float3(offset, 0, 0);
+	_ParticleBuffer[pid] = float3(sin(t), cos(t), 0) * lid + float3(offset, 0, offset);
 }

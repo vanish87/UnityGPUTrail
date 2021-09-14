@@ -96,7 +96,7 @@ void UpdateSourceBuffer (uint3 id : SV_DispatchThreadID)
     _SourceBuffer[pid] = _ParticleBuffer[pid];
 }
 
-void UpdateTrailNode(inout TrailNode node, in SourceType p)
+void UpdateNode(inout TrailNode node, in SourceType p)
 {
     node.pos = p;
 }
@@ -110,7 +110,7 @@ void UpdateFromSourceBuffer (uint3 id : SV_DispatchThreadID)
 
     const int firstid = header.first;
     const int maxLength = header.maxLength;
-    int currentlength = header.currentlength;
+    const int currentlength = header.currentlength;
 
     const int pid = hid;
     SourceType p = _SourceBuffer[pid];
@@ -119,7 +119,7 @@ void UpdateFromSourceBuffer (uint3 id : SV_DispatchThreadID)
     int nid = _TrailNodeIndexBufferConsume.Consume();
     TrailNode node = _TrailNodeBuffer[nid];
     node = InitNode(nid, node);
-    UpdateTrailNode(node, p);
+    UpdateNode(node, p);
 
     //add new node before first node
     if(firstid != -1)
