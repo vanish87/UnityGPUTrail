@@ -25,22 +25,28 @@ namespace GPUTrail
 
 		[SerializeField] protected float width = 1;
 		[SerializeField] protected bool drawPoint = false;
-		protected float2 p0;
-		protected float2 p1;
-		protected float2 p2;
-		protected float2 p3;
 
 		protected void OnEnable()
 		{
-			this.p0 = this.points[0];
-			this.p1 = this.points[1];
-			this.p2 = this.points[2];
-			this.p3 = this.points[3];
+			// this.p0 = this.points[0];
+			// this.p1 = this.points[1];
+			// this.p2 = this.points[2];
+			// this.p3 = this.points[3];
 		}
         protected void Update()
         {
 
 
+        }
+
+        public bool debug = false;
+
+        protected void DrawLine(float2 a, float2 b, Color c)
+        {
+            var old = Gizmos.color;
+            Gizmos.color = c;
+            Gizmos.DrawLine(new Vector3(a.x, a.y, 0), new Vector3(b.x, b.y, 0));
+            Gizmos.color = old;
         }
 
 		protected float2 GetModifedPoint(float2 a, float2 b, float2 c, float2 d, float2 pos)
@@ -63,9 +69,15 @@ namespace GPUTrail
             var p01Normal = math.normalize(new float2(-p01.y, p01.x));
             var sigma = math.sign(math.dot(p01 + p21, normal));
 
-            if(math.sign(pos.y) == -sigma)
+            this.DrawLine(p1, p1 + normal, Color.red);
+            this.DrawLine(p1, p1 + p01Normal, Color.green);
+
+            if(math.sign(pos.y) == -sigma && debug)
             {
                 var p = 0.5f * normal * -sigma * this.width / math.dot(normal, p01Normal);
+                this.DrawLine(p1, p1 + p, Color.blue);
+
+                // this.DrawLine(p1 + p, p1 - p, Color.blue);
                 return p1 + p;
             }
             else
@@ -92,6 +104,30 @@ namespace GPUTrail
 				Gizmos.DrawLine(new Vector3(wp1.x, wp1.y, 0), new Vector3(wp2.x, wp2.y, 0));
 				Gizmos.DrawLine(new Vector3(wp2.x, wp2.y, 0), new Vector3(wp0.x, wp0.y, 0));
 			}
+
+            var resolution = 8;
+            foreach(var r in Enumerable.Range(0,resolution))
+            {
+                var tangent = math.normalize(math.normalize(c - b) + math.normalize(b - a));
+                var normal = new float2(-tangent.y, tangent.x);
+                var p01 = b - a;
+                var p21 = b - c;
+                var p01Normal = math.normalize(new float2(-p01.y, p01.x));
+                var p1Normal = math.normalize(new float2(-p01.y, p01.x));
+                var sigma = math.sign(math.dot(p01 + p21, normal));
+
+                // if(sigma > 0)
+                {
+                    var radius = 0.5f * this.width / math.dot(normal, p01Normal);
+					var p = normal * -sigma * radius;
+					var miter = b - p;
+					var center = b + p;
+					var pleft = b - p01Normal * 0.5f * this.width;
+					var pright = b - p01Normal * 0.5f * this.width;
+                    // Gizmos.DrawLine()
+
+                }
+            }
         }
 
 		protected void OnDrawGizmos()
