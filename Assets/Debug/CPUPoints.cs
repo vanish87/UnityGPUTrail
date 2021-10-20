@@ -71,6 +71,57 @@ namespace GPUTrail
 
             return ret;
         }
+
+        protected List<float2> GenerateCircle(float2 origin, float radius, float2 from, float2 to, int resolution = 8)
+        {
+			var ret = new List<float2>();
+            resolution = math.max(1, resolution);
+			foreach (var i in Enumerable.Range(0, resolution))
+			{
+				var dir = math.normalize(math.lerp(from, to, i * 1.0f / resolution));
+                ret.Add(origin + dir * radius);
+			}
+
+			return ret;
+        }
+
+        protected List<float2> GetGeneratedPoints(float2 p0, float2 p1, float2 p2)
+        {
+
+            var ret = new List<float2>();
+            var normal = GetNormal(p0, p1, p2);
+			var p01normal = GetNormal(p0, p1);
+			var p01 = p1 - p0;
+			var p21 = p1 - p2;
+            var sigma = math.sign(math.dot(p01 + p21, normal));
+
+            if(sigma == 0) return ret;
+
+            var xBasis = p2 - p1;
+            var yBasis = GetNormal(p1, p2);
+			var len = 0.5f * this.width / math.dot(normal, p01normal);
+			var p = normal * sigma * len;
+            ret.Add(p1 + p);
+            ret.Add(p1 - p);
+
+            if(sigma > 0)
+            {
+                var t1 = new float2(0, 0.5f);
+                // var t2 = new float2(0, -0.5f);
+
+				ret.Add(p1 + xBasis * t1.x + yBasis * this.width * t1.y);
+            }
+            else
+            {
+                // var t1 = new float2(0, 0.5f);
+                var t2 = new float2(0, -0.5f);
+
+				ret.Add(p1 + xBasis * t2.x + yBasis * this.width * t2.y);
+            }
+
+            return ret;
+        }
+
         
         protected List<float2> GetModifiedPoints(float2 p0, float2 p1, float2 p2)
         {
@@ -107,11 +158,26 @@ namespace GPUTrail
             return ret;
         }
 
+        protected void DrawGenPoints(List<float2> genPoints)
+        {
+			if (genPoints.Count > 0)
+			{
+				this.DrawLine(genPoints[0], genPoints[1], Color.green);
+				this.DrawLine(genPoints[1], genPoints[2], Color.green);
+				this.DrawLine(genPoints[2], genPoints[0], Color.green);
+			}
+		}
+
         protected List<float2> GetPoints(float2 p0, float2 p1, float2 p2, float2 p3)
         {
             var ret = new List<float2>();
             ret.AddRange(this.GetModifiedPoints(p0, p1, p2));
             ret.AddRange(this.GetModifiedPoints(p3, p2, p1));
+
+            var genPoints = this.GetGeneratedPoints(p0, p1, p2);
+            this.DrawGenPoints(genPoints);
+            genPoints = this.GetGeneratedPoints(p3, p2, p1);
+            this.DrawGenPoints(genPoints);
             return ret;
         }
 
