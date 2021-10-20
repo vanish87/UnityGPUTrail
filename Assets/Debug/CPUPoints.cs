@@ -20,7 +20,7 @@ namespace GPUTrail
         [SerializeField] protected List<int> lineIndex = new List<int>()
         {
             0,1,2,
-            2,1,3,
+            // 2,1,3,
         };
 
 		[SerializeField] protected float width = 1;
@@ -45,8 +45,74 @@ namespace GPUTrail
         {
             var old = Gizmos.color;
             Gizmos.color = c;
-            Gizmos.DrawLine(new Vector3(a.x, a.y, 0), new Vector3(b.x, b.y, 0));
+			Gizmos.DrawLine(new Vector3(a.x, a.y, 0), new Vector3(b.x, b.y, 0));
+			// UnityEditor.Handles.DrawDottedLine(new Vector3(a.x, a.y, 0), new Vector3(b.x, b.y, 0), 10f);
             Gizmos.color = old;
+        }
+        protected float2 GetNormal(float2 a, float2 b, float2 c)
+        {
+			var tangent = math.normalize(math.normalize(c - b) + math.normalize(b - a));
+			return new float2(-tangent.y, tangent.x);
+        }
+        protected float2 GetNormal(float2 a, float2 b)
+        {
+            var line = math.normalize(b-a);
+			return new float2(-line.y, line.x);
+        }
+        protected List<float2> GeneratePoints(float2 a, float2 b, float2 c, float2 d)
+        {
+			var ret = new List<float2>();
+            var lnormal = GetNormal(a, b, c);
+            var rnormal = GetNormal(b, c, d);
+
+			var abnormal = GetNormal(a, b);
+			var cdnormal = GetNormal(c, d);
+
+
+            return ret;
+        }
+        
+        protected List<float2> GetModifiedPoints(float2 p0, float2 p1, float2 p2)
+        {
+            var ret = new List<float2>();
+            var normal = GetNormal(p0, p1, p2);
+			var p01normal = GetNormal(p0, p1);
+			var p01 = p1 - p0;
+			var p21 = p1 - p2;
+            var sigma = math.sign(math.dot(p01 + p21, normal));
+
+            var xBasis = p2 - p1;
+            var yBasis = GetNormal(p1, p2);
+			var len = 0.5f * this.width / math.dot(normal, p01normal);
+			var p = normal * (sigma==0?1:-sigma) * len;
+
+            if(sigma > 0)
+            {
+                var t1 = new float2(0, 0.5f);
+                // var t2 = new float2(0, -0.5f);
+
+				ret.Add(p1 + xBasis * t1.x + yBasis * this.width * t1.y);
+                //modify lower one
+				ret.Add(p1 + p);
+            }
+            else
+            {
+                // var t1 = new float2(0, 0.5f);
+                var t2 = new float2(0, -0.5f);
+
+                //modify upper one
+				ret.Add(p1 + p);
+				ret.Add(p1 + xBasis * t2.x + yBasis * this.width * t2.y);
+            }
+            return ret;
+        }
+
+        protected List<float2> GetPoints(float2 p0, float2 p1, float2 p2, float2 p3)
+        {
+            var ret = new List<float2>();
+            ret.AddRange(this.GetModifiedPoints(p0, p1, p2));
+            ret.AddRange(this.GetModifiedPoints(p3, p2, p1));
+            return ret;
         }
 
 		protected float2 GetModifedPoint(float2 a, float2 b, float2 c, float2 d, float2 pos)
@@ -140,10 +206,22 @@ namespace GPUTrail
 				}
             }
 
-            foreach(var i in Enumerable.Range(0, this.points.Count-3))
-            {
-                this.DrawLine(this.points[i], this.points[i+1], this.points[i+2], this.points[i+3]);
-            }
+			foreach(var i in Enumerable.Range(0, this.points.Count-3))
+			{
+			    // this.DrawLine(this.points[i], this.points[i+1], this.points[i+2], this.points[i+3]);
+			    this.DrawTriangle(this.points[i], this.points[i+1], this.points[i+2], this.points[i+3]);
+			}
+			// this.DrawTriangle(this.points[0], this.points[1], this.points[2], this.points[3]);
+			// this.DrawTriangle(this.points[3], this.points[2], this.points[1], true);
 		}
+        
+        protected void DrawTriangle(float2 a, float2 b, float2 c, float2 d)
+        {
+            var triangles = this.GetPoints(a, b, c, d);
+            this.DrawLine(triangles[0], triangles[1], Color.cyan);
+            this.DrawLine(triangles[1], triangles[2], Color.cyan);
+            this.DrawLine(triangles[2], triangles[3], Color.cyan);
+            this.DrawLine(triangles[3], triangles[0], Color.cyan);
+        }
 	}
 }
