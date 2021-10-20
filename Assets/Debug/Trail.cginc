@@ -25,7 +25,7 @@ void GenerateMainPoint(float2 p0, float2 p1, float2 p2, float width, out float2 
 
     float2 xBasis = p2 - p1;
     float2 yBasis = GetNormal(p1, p2);
-    float len = LineBaseWidth * width / dot(normal, p01normal);
+    float len = LineBaseWidth * width / max(0.1,dot(normal, p01normal));
     float2 p = normal * (sigma==0?1:-sigma) * len;
 
     if(sigma > 0)
@@ -84,7 +84,7 @@ bool GenerateCornerPoint(float2 p0, float2 p1, float2 p2, float width, out float
 
     float2 xBasis = p2 - p1;
     float2 yBasis = GetNormal(p1, p2);
-    float len = LineBaseWidth * width / dot(normal, p01normal);
+    float len = LineBaseWidth * width / max(0.1,dot(normal, p01normal));
     origin = p1 - normal * sigma * len;
 
     float2 t = float2(0, sigma * LineBaseWidth);
