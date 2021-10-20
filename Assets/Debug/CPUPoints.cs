@@ -84,6 +84,47 @@ namespace GPUTrail
 
 			return ret;
         }
+        protected List<float2> GetGeneratedCirclePoints(float2 p0, float2 p1, float2 p2)
+        {
+            var ret = new List<float2>();
+            var normal = GetNormal(p0, p1, p2);
+			var p01normal = GetNormal(p0, p1);
+			var p01 = p1 - p0;
+			var p21 = p1 - p2;
+            var sigma = math.sign(math.dot(p01 + p21, normal));
+
+            if(sigma == 0) return ret;
+
+            var xBasis = p2 - p1;
+            var yBasis = GetNormal(p1, p2);
+			var len = 0.5f * this.width / math.dot(normal, p01normal);
+			var p = normal * sigma * len;
+            var org = p1 + p;
+            var to = p1 - p;
+
+            ret.Add(org);
+
+            if(sigma > 0)
+            {
+                var t1 = new float2(0, 0.5f);
+                // var t2 = new float2(0, -0.5f);
+
+				var from = (p1 + xBasis * t1.x + yBasis * this.width * t1.y) - org;
+                var circle = this.GenerateCircle(org, len, from, to);
+                ret.AddRange(circle);
+            }
+            else
+            {
+                // var t1 = new float2(0, 0.5f);
+                var t2 = new float2(0, -0.5f);
+
+				var from = (p1 + xBasis * t2.x + yBasis * this.width * t2.y) - org;
+                var circle = this.GenerateCircle(org, len, from, to);
+                ret.AddRange(circle);
+            }
+
+            return ret;
+        }
 
         protected List<float2> GetGeneratedPoints(float2 p0, float2 p1, float2 p2)
         {
@@ -101,23 +142,43 @@ namespace GPUTrail
             var yBasis = GetNormal(p1, p2);
 			var len = 0.5f * this.width / math.dot(normal, p01normal);
 			var p = normal * sigma * len;
-            ret.Add(p1 + p);
-            ret.Add(p1 - p);
+            var origin = p1 - p;
+            var to = float2.zero;
+
 
             if(sigma > 0)
             {
                 var t1 = new float2(0, 0.5f);
                 // var t2 = new float2(0, -0.5f);
 
-				ret.Add(p1 + xBasis * t1.x + yBasis * this.width * t1.y);
+				to =(p1 + xBasis * t1.x + yBasis * this.width * t1.y);
             }
             else
             {
                 // var t1 = new float2(0, 0.5f);
                 var t2 = new float2(0, -0.5f);
 
-				ret.Add(p1 + xBasis * t2.x + yBasis * this.width * t2.y);
+				to = (p1 + xBasis * t2.x + yBasis * this.width * t2.y);
             }
+
+            // var from = p1 + normal * sigma * 0.5f * this.width;
+            // var from = p1 + p;
+			var from = origin + sigma * normal * math.length(to - origin);
+
+            ret.Add(origin);
+            ret.Add(from);
+            var res = 8;
+            foreach(var i in Enumerable.Range(0, res))
+            {
+                var dt = 1.0f * i / (res-1);
+                var dir = math.lerp(from, to, 1.0f * i / (res-1)) - origin;
+                var flen = math.length(from-origin);
+                var tlen = math.length(to-origin);
+                var rlen = math.lerp(flen, tlen, dt);
+                var np = origin + math.normalize(dir) * rlen;
+                ret.Add(np);
+            }
+            ret.Add(to);
 
             return ret;
         }
@@ -160,11 +221,14 @@ namespace GPUTrail
 
         protected void DrawGenPoints(List<float2> genPoints)
         {
-			if (genPoints.Count > 0)
+			if (genPoints.Count > 1)
 			{
-				this.DrawLine(genPoints[0], genPoints[1], Color.green);
-				this.DrawLine(genPoints[1], genPoints[2], Color.green);
-				this.DrawLine(genPoints[2], genPoints[0], Color.green);
+                foreach(var i in Enumerable.Range(0, genPoints.Count-1))
+                {
+                    this.DrawLine(genPoints[i], genPoints[i+1], Color.green);
+
+                }
+				this.DrawLine(genPoints[genPoints.Count-1], genPoints[0], Color.green);
 			}
 		}
 
@@ -178,6 +242,11 @@ namespace GPUTrail
             this.DrawGenPoints(genPoints);
             genPoints = this.GetGeneratedPoints(p3, p2, p1);
             this.DrawGenPoints(genPoints);
+
+            // var genPoints = this.GetGeneratedCirclePoints(p0, p1, p2);
+			// if (genPoints.Count > 1) foreach (var i in Enumerable.Range(0, genPoints.Count - 1)) this.DrawLine(genPoints[i], genPoints[i + 1], Color.blue);
+            // genPoints = this.GetGeneratedCirclePoints(p3, p2, p1);
+
             return ret;
         }
 
