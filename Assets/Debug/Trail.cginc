@@ -11,6 +11,12 @@ float2 GetNormal(float2 a, float2 b)
     float2 l = normalize(b-a);
     return float2(-l.y, l.x);
 }
+void Swap(inout float2 np1, inout float2 np2)
+{
+    float2 temp = np1;
+    np1 = np2;
+    np2 = temp;
+}
 
 void GenerateMainPoint(float2 p0, float2 p1, float2 p2, float width, out float2 np1, out float2 np2)
 {
@@ -28,28 +34,23 @@ void GenerateMainPoint(float2 p0, float2 p1, float2 p2, float width, out float2 
     float len = LineBaseWidth * width / max(0.1,dot(normal, p01normal));
     float2 p = normal * (sigma==0?1:-sigma) * len;
 
-    if(sigma > 0)
-    {
-        float2 t1 = float2(0, LineBaseWidth);
-        np1 = (p1 + xBasis * t1.x + yBasis * width * t1.y);
-        np2 = (p1 + p);
-    }
-    else
-    {
-        float2 t2 = float2(0, -LineBaseWidth);
-        np1 = (p1 + p);
-        np2 = (p1 + xBasis * t2.x + yBasis * width * t2.y);
-    }
+    float2 t = float2(0, sigma>0?LineBaseWidth:-LineBaseWidth);
+    np1 = (p1 + xBasis * t.x + yBasis * width * t.y);
+    np2 = (p1 + p);
+
+    if(sigma <= 0) Swap(np1, np2);
 }
 
-PSType GenerateVertex(float2 pos, float z)
+PSType GenerateVertex(float2 pos, float z, float2 uv)
 {
     PSType p = (PSType)0;
     p.pos = mul(UNITY_MATRIX_P, float4(pos.xy,z,1));
+    // p.pos = float4(pos.xy,z,1);
+    p.uv = uv;
     return p;
 }
 
-void GenerateMainLine(inout TriangleStream<PSType> outStream, float3 p0, float3 p1, float3 p2, float3 p3, float width)
+void GenerateMainLine(inout TriangleStream<PSType> outStream, float3 p0, float3 p1, float3 p2, float3 p3, float width, float2 uv12)
 {
     float2 np1 = 0;
     float2 np2 = 0;
@@ -60,19 +61,21 @@ void GenerateMainLine(inout TriangleStream<PSType> outStream, float3 p0, float3 
     GenerateMainPoint(p3, p2, p1, width, np3, np4);
 
     //clock wise vertice for culling
-    //1---4
-    //| / |
-    //2---3
-    outStream.Append(GenerateVertex(np1, p1.z));
-    outStream.Append(GenerateVertex(np4, p1.z));
-    outStream.Append(GenerateVertex(np2, p1.z));
-    outStream.Append(GenerateVertex(np3, p1.z));
+    //   np1---np4
+    //p1   | /  |   p2
+    //   np2---np3
+    outStream.Append(GenerateVertex(np1, p1.z, float2(uv12.x, 1)));
+    outStream.Append(GenerateVertex(np4, p1.z, float2(uv12.y, 1)));
+    outStream.Append(GenerateVertex(np2, p1.z, float2(uv12.x, 0)));
+    outStream.Append(GenerateVertex(np3, p1.z, float2(uv12.y, 0)));
     outStream.RestartStrip();
 }
 
-bool GenerateCornerPoint(float2 p0, float2 p1, float2 p2, float width, out float2 origin, out float2 from, out float2 to)
+void GenerateCornerPoint(inout TriangleStream<PSType> outStream, float2 p0, float2 p1, float2 p2, float width, float z, float2 uv12)
 {
-    from = to = origin = 0;
+    float2 from = 0;
+    float2 to = 0;
+    float2 origin = 0;
 
     float2 normal = GetNormal(p0, p1, p2);
     float2 p01normal = GetNormal(p0, p1);
@@ -80,7 +83,7 @@ bool GenerateCornerPoint(float2 p0, float2 p1, float2 p2, float width, out float
     float2 p21 = p1 - p2;
     float sigma = sign(dot(p01 + p21, normal));
 
-    if(sigma == 0) return false;
+    if(sigma == 0) return;
 
     float2 xBasis = p2 - p1;
     float2 yBasis = GetNormal(p1, p2);
@@ -93,36 +96,19 @@ bool GenerateCornerPoint(float2 p0, float2 p1, float2 p2, float width, out float
 
     from = origin + sigma * normal * length(to - origin);
 
-    if(sigma < 0) 
-    {
-        float2 temp = to;
-        to = from;
-        from = temp;
-    }
+    if(sigma < 0) Swap(from, to);
 
-    return true;
+    outStream.Append(GenerateVertex(origin, z, float2(uv12.x, sigma<0?0:1)));
+    outStream.Append(GenerateVertex(from, z, float2(uv12.x, sigma<0?1:0)));
+    outStream.Append(GenerateVertex(to, z, float2(uv12.x, sigma<0?1:0)));
+    outStream.RestartStrip();
 }
 
-void GenerateCorner(inout TriangleStream<PSType> outStream, float3 p0, float3 p1, float3 p2, float3 p3, float width)
+void GenerateCorner(inout TriangleStream<PSType> outStream, float3 p0, float3 p1, float3 p2, float3 p3, float width, float2 uv12)
 {
-
-    float2 origin;
-    float2 from;
-    float2 to;
-    if(GenerateCornerPoint(p0, p1, p2, width, origin, from, to))
-    {
-        outStream.Append(GenerateVertex(origin, p1.z));
-        outStream.Append(GenerateVertex(from, p1.z));
-        outStream.Append(GenerateVertex(to, p1.z));
-        outStream.RestartStrip();
-    }
-    if(GenerateCornerPoint(p3, p2, p1, width, origin, from, to))
-    {
-        outStream.Append(GenerateVertex(origin, p1.z));
-        outStream.Append(GenerateVertex(from, p1.z));
-        outStream.Append(GenerateVertex(to, p1.z));
-        outStream.RestartStrip();
-    }
+    GenerateCornerPoint(outStream, p0, p1, p2, width, p1.z, uv12.xy);
+    GenerateCornerPoint(outStream, p3, p2, p1, width, p1.z, uv12.yx);
+    
     // var res = 8;
     // foreach(var i in Enumerable.Range(0, res))
     // {

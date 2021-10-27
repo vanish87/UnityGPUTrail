@@ -92,6 +92,11 @@ Shader "Unlit/NewTrailShader"
 		p2 = float4(UnityObjectToViewPos(p2), 1);
 		p3 = float4(UnityObjectToViewPos(p3), 1);
 
+		// p0 = UnityObjectToClipPos(p0);
+		// p1 = UnityObjectToClipPos(p1);
+		// p2 = UnityObjectToClipPos(p2);
+		// p3 = UnityObjectToClipPos(p3);
+
         o.p0 = p0;
         o.p1 = p1;
         o.p2 = p2;
@@ -120,8 +125,8 @@ Shader "Unlit/NewTrailShader"
 
 		float2 uv12 = p[0].uv12;
 
-        GenerateMainLine(outStream, p0, p1, p2, p3, _Thickness);
-        GenerateCorner(outStream, p0, p1, p2, p3, _Thickness);
+        GenerateMainLine(outStream, p0, p1, p2, p3, _Thickness, uv12);
+        GenerateCorner(outStream, p0, p1, p2, p3, _Thickness, uv12);
     }
 
 	fixed4 frag(g2f i) : SV_Target
@@ -133,7 +138,7 @@ Shader "Unlit/NewTrailShader"
 		float4 alphaX = SampleX(_TrailGradientTexture, uv, TrailHorizontalAlphaGradient);
 		float4 alphaY = SampleY(_TrailGradientTexture, uv, TrailVerticalAlphaGradient);
 		col.a *= alphaX.a * alphaY.a;
-        // col.a = 0.5;
+        col.a = 0.5;
 		return col;
 		return i.col;
 	}

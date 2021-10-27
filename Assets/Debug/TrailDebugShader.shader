@@ -240,6 +240,7 @@ Shader "Unlit/TrailDebugShader"
 		float4 alphaX = SampleX(_TrailGradientTexture, uv, TrailHorizontalAlphaGradient);
 		float4 alphaY = SampleY(_TrailGradientTexture, uv, TrailVerticalAlphaGradient);
 		col.a *= alphaX.a * alphaY.a;
+		col.a = 0.5f;
 		return col;
 		return i.col;
 	}
