@@ -226,7 +226,7 @@ namespace GPUTrail
                 foreach(var i in Enumerable.Range(0, genPoints.Count-1))
                 {
                     this.DrawLine(genPoints[i], genPoints[i+1], Color.green);
-
+                    this.DrawLine(genPoints[i], genPoints[0], Color.green);
                 }
 				this.DrawLine(genPoints[genPoints.Count-1], genPoints[0], Color.green);
 			}
