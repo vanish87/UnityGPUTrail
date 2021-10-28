@@ -1,8 +1,9 @@
 # UnityGPUTrail
 
-Modified trail geometry from https://github.com/paulhoux/Cinder-Samples/tree/master/GeometryShader
-
-GPUTrail with thinness, alpha and color control in view space.
+GPUTrail with
+- thinness, alpha and color control in view space.
+- none-overlap alpha blending
+- triangle generation for corner
 
 ![](Gifs/trail_debug.png)
 
