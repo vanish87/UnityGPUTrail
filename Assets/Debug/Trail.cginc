@@ -52,15 +52,15 @@ PSType GenerateVertex(float2 pos, float z, float2 uv)
     return p;
 }
 
-void GenerateMainLine(inout TriangleStream<PSType> outStream, float3 p0, float3 p1, float3 p2, float3 p3, float width, float2 uv12)
+void GenerateMainLine(inout TriangleStream<PSType> outStream, float3 p0, float3 p1, float3 p2, float3 p3, float2 width12, float2 uv12)
 {
     float2 np1 = 0;
     float2 np2 = 0;
     float2 np3 = 0;
     float2 np4 = 0;
 
-    GenerateMainPoint(p0, p1, p2, width, np1, np2);
-    GenerateMainPoint(p3, p2, p1, width, np3, np4);
+    GenerateMainPoint(p0, p1, p2, width12.x, np1, np2);
+    GenerateMainPoint(p3, p2, p1, width12.y, np3, np4);
 
     //clock wise vertice for culling
     //   np1---np4
@@ -107,10 +107,10 @@ void GenerateCornerPoint(inout TriangleStream<PSType> outStream, float2 p0, floa
     outStream.RestartStrip();
 }
 
-void GenerateCorner(inout TriangleStream<PSType> outStream, float3 p0, float3 p1, float3 p2, float3 p3, float width, float2 uv12)
+void GenerateCorner(inout TriangleStream<PSType> outStream, float3 p0, float3 p1, float3 p2, float3 p3, float2 width, float2 uv12)
 {
-    GenerateCornerPoint(outStream, p0, p1, p2, width, p1.z, uv12.xy);
-    GenerateCornerPoint(outStream, p3, p2, p1, width, p1.z, uv12.yx);
+    GenerateCornerPoint(outStream, p0, p1, p2, width.x, p1.z, uv12.xy);
+    GenerateCornerPoint(outStream, p3, p2, p1, width.y, p1.z, uv12.yx);
     
     // var res = 8;
     // foreach(var i in Enumerable.Range(0, res))

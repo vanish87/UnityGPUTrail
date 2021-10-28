@@ -113,7 +113,7 @@ Shader "Unlit/NewTrailShader"
 
 
 
-	[maxvertexcount(16)]
+	[maxvertexcount(10)]
 	void geom(point v2g p[1], inout TriangleStream<g2f> outStream)
 	{
 		g2f pIn = (g2f)0;
@@ -125,8 +125,12 @@ Shader "Unlit/NewTrailShader"
 
 		float2 uv12 = p[0].uv12;
 
-        GenerateMainLine(outStream, p0, p1, p2, p3, _Thickness, uv12);
-        GenerateCorner(outStream, p0, p1, p2, p3, _Thickness, uv12);
+		float4 t1 = SampleXLod(_TrailGradientTexture, float2(uv12.x, 0), TrailThicknessGradient);
+		float4 t2 = SampleXLod(_TrailGradientTexture, float2(uv12.y, 0), TrailThicknessGradient);
+		float2 thickness = _Thickness * float2(t1.a, t2.a);
+
+        GenerateMainLine(outStream, p0, p1, p2, p3, thickness, uv12);
+        GenerateCorner(outStream, p0, p1, p2, p3, thickness, uv12);
     }
 
 	fixed4 frag(g2f i) : SV_Target
