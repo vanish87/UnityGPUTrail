@@ -1,5 +1,6 @@
 
 static const float LineBaseWidth = 0.5f;
+static const float MaxLineWidth = 1;
 
 float2 GetNormal(float2 a, float2 b, float2 c)
 {
@@ -32,7 +33,7 @@ void GenerateMainPoint(float2 p0, float2 p1, float2 p2, float width, out float2 
 
     float2 xBasis = p2 - p1;
     float2 yBasis = GetNormal(p1, p2);
-    float len = LineBaseWidth * width / max(0.1,dot(normal, p01normal));
+    float len = LineBaseWidth * width / max(MaxLineWidth,dot(normal, p01normal));
     float2 p = normal * (sigma==0?1:-sigma) * len;
 
     float2 t = float2(0, sigma>0?LineBaseWidth:-LineBaseWidth);
@@ -90,7 +91,7 @@ void GenerateCornerPoint(inout TriangleStream<PSType> outStream, float2 p0, floa
 
     float2 xBasis = p2 - p1;
     float2 yBasis = GetNormal(p1, p2);
-    float len = LineBaseWidth * width / max(0.1,dot(normal, p01normal));
+    float len = LineBaseWidth * width / max(MaxLineWidth,dot(normal, p01normal));
     origin = p1 - normal * sigma * len;
 
     float2 t = float2(0, sigma * LineBaseWidth);
