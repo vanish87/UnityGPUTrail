@@ -28,6 +28,7 @@ void GenerateMainPoint(float2 p0, float2 p1, float2 p2, float width, out float2 
     float2 p01 = p1 - p0;
     float2 p21 = p1 - p2;
     float sigma = sign(dot(p01 + p21, normal));
+    float angle = dot(normalize(p01), normalize(p21));
 
     float2 xBasis = p2 - p1;
     float2 yBasis = GetNormal(p1, p2);
@@ -36,6 +37,7 @@ void GenerateMainPoint(float2 p0, float2 p1, float2 p2, float width, out float2 
 
     float2 t = float2(0, sigma>0?LineBaseWidth:-LineBaseWidth);
     np1 = (p1 + xBasis * t.x + yBasis * width * t.y);
+    if(angle < 0.5f) np1 = (p1 - p);
     np2 = (p1 + p);
 
     if(sigma <= 0) Swap(np1, np2);
@@ -82,8 +84,9 @@ void GenerateCornerPoint(inout TriangleStream<PSType> outStream, float2 p0, floa
     float2 p01 = p1 - p0;
     float2 p21 = p1 - p2;
     float sigma = sign(dot(p01 + p21, normal));
+    float angle = dot(normalize(p01), normalize(p21));
 
-    if(sigma == 0) return;
+    if(sigma == 0 || angle < 0.5f) return;
 
     float2 xBasis = p2 - p1;
     float2 yBasis = GetNormal(p1, p2);
