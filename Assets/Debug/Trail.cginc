@@ -18,6 +18,14 @@ void Swap(inout float2 np1, inout float2 np2)
     np1 = np2;
     np2 = temp;
 }
+float2 GetPoint(float2 from, float2 to, float2 origin, float dt)
+{
+    float2 dir = lerp(from, to, dt) - origin;
+    float flen = length(from-origin);
+    float tlen = length(to-origin);
+    float rlen = lerp(flen, tlen, dt);
+    return origin + normalize(dir) * rlen;
+}
 
 void GenerateMainPoint(float2 p0, float2 p1, float2 p2, float width, float angleTheshold, out float2 np1, out float2 np2)
 {
@@ -94,21 +102,15 @@ void GenerateCornerPoint(inout TriangleStream<VertexOut> outStream, float2 p0, f
 
     if(sigma < 0) Swap(from, to);
 
-    int res = max(cornerDivision, 2);
-    float2 prev = from;
+    int res = max(cornerDivision, 1);
     for(int i = 0 ; i < res; ++i)
     {
-        float dt = 1.0f * i / (res-1);
-        float2 dir = lerp(from, to, 1.0f * i / (res-1)) - origin;
-        float flen = length(from-origin);
-        float tlen = length(to-origin);
-        float rlen = lerp(flen, tlen, dt);
-        float2 np = origin + normalize(dir) * rlen;
+        float2 np1 = GetPoint(from, to, origin, 1.0f *  i    / res);
+        float2 np2 = GetPoint(from, to, origin, 1.0f * (i+1) / res);
         outStream.Append(GenerateVertex(float3(origin, z), float2(uv12.x, sigma<0?0:1), vin));
-        outStream.Append(GenerateVertex(float3(prev, z)  , float2(uv12.x, sigma<0?1:0), vin));
-        outStream.Append(GenerateVertex(float3(np, z)    , float2(uv12.x, sigma<0?1:0), vin));
+        outStream.Append(GenerateVertex(float3(np1, z)   , float2(uv12.x, sigma<0?1:0), vin));
+        outStream.Append(GenerateVertex(float3(np2, z)   , float2(uv12.x, sigma<0?1:0), vin));
         outStream.RestartStrip();
-        prev = np;
     }
 }
 

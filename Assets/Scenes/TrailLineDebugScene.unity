@@ -1093,7 +1093,7 @@ MonoBehaviour:
     y: 0.23
     z: 0
     w: 1
-  - x: 2.76
+  - x: 2.69
     y: -0.33
     z: 0
     w: 1
@@ -1162,7 +1162,7 @@ MonoBehaviour:
     mouseDrag: 0
     mouseDragDistanceThreshold: 0.1
     thickness: 1
-    cornerDivision: 4
+    cornerDivision: 6
     angleThreshold: 0
     gradients:
     - serializedVersion: 2
