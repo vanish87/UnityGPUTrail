@@ -24,7 +24,21 @@ Shader "Unlit/NewTrailShader"
 		float2 uv  : TEXCOORD;
 		float4 col : COLOR;
 	};
-    #define PSType g2f
+
+	struct gin
+	{
+		float3 color;
+	};
+    #define VertexIn gin
+    #define VertexOut g2f
+	VertexOut GenerateVertex(float3 pos, float2 uv, VertexIn vin)
+	{
+		VertexOut p = (VertexOut)0;
+		p.pos = mul(UNITY_MATRIX_P, float4(pos,1));
+		// p.pos = float4(pos.xy,z,1);
+		p.uv = uv;
+		return p;
+	}
     #include "Trail.cginc"
 
 	sampler2D _MainTex;
@@ -129,8 +143,10 @@ Shader "Unlit/NewTrailShader"
 		float4 t2 = SampleXLod(_TrailGradientTexture, float2(uv12.y, 0), TrailThicknessGradient);
 		float2 thickness = _Thickness * float2(t1.a, t2.a);
 
-        GenerateMainLine(outStream, p0, p1, p2, p3, thickness, uv12, _AngleThreshold);
-        GenerateCorner(outStream, p0, p1, p2, p3, thickness, uv12,_AngleThreshold, _CornerDivision);
+		VertexIn vin = (VertexIn)0;
+
+        GenerateMainLine(outStream, p0, p1, p2, p3, thickness, uv12, vin, _AngleThreshold);
+        GenerateCorner(outStream, p0, p1, p2, p3, thickness, uv12, vin, _AngleThreshold, _CornerDivision);
     }
 
 	fixed4 frag(g2f i) : SV_Target

@@ -44,16 +44,8 @@ void GenerateMainPoint(float2 p0, float2 p1, float2 p2, float width, float angle
     if(sigma <= 0) Swap(np1, np2);
 }
 
-PSType GenerateVertex(float2 pos, float z, float2 uv)
-{
-    PSType p = (PSType)0;
-    p.pos = mul(UNITY_MATRIX_P, float4(pos.xy,z,1));
-    // p.pos = float4(pos.xy,z,1);
-    p.uv = uv;
-    return p;
-}
 
-void GenerateMainLine(inout TriangleStream<PSType> outStream, float3 p0, float3 p1, float3 p2, float3 p3, float2 width12, float2 uv12, float angleTheshold = 0.5f)
+void GenerateMainLine(inout TriangleStream<VertexOut> outStream, float3 p0, float3 p1, float3 p2, float3 p3, float2 width12, float2 uv12, VertexIn vin, float angleTheshold = 0.5f)
 {
     float2 np1 = 0;
     float2 np2 = 0;
@@ -67,14 +59,14 @@ void GenerateMainLine(inout TriangleStream<PSType> outStream, float3 p0, float3 
     //   np1---np4
     //p1   | /  |   p2
     //   np2---np3
-    outStream.Append(GenerateVertex(np1, p1.z, float2(uv12.x, 1)));
-    outStream.Append(GenerateVertex(np4, p1.z, float2(uv12.y, 1)));
-    outStream.Append(GenerateVertex(np2, p1.z, float2(uv12.x, 0)));
-    outStream.Append(GenerateVertex(np3, p1.z, float2(uv12.y, 0)));
+    outStream.Append(GenerateVertex(float3(np1, p1.z), float2(uv12.x, 1), vin));
+    outStream.Append(GenerateVertex(float3(np4, p1.z), float2(uv12.y, 1), vin));
+    outStream.Append(GenerateVertex(float3(np2, p1.z), float2(uv12.x, 0), vin));
+    outStream.Append(GenerateVertex(float3(np3, p1.z), float2(uv12.y, 0), vin));
     outStream.RestartStrip();
 }
 
-void GenerateCornerPoint(inout TriangleStream<PSType> outStream, float2 p0, float2 p1, float2 p2, float width, float z, float2 uv12, float angleThreshold, int cornerDivision)
+void GenerateCornerPoint(inout TriangleStream<VertexOut> outStream, float2 p0, float2 p1, float2 p2, float width, float z, float2 uv12, VertexIn vin, float angleThreshold, int cornerDivision)
 {
     float2 from = 0;
     float2 to = 0;
@@ -112,17 +104,17 @@ void GenerateCornerPoint(inout TriangleStream<PSType> outStream, float2 p0, floa
         float tlen = length(to-origin);
         float rlen = lerp(flen, tlen, dt);
         float2 np = origin + normalize(dir) * rlen;
-        outStream.Append(GenerateVertex(origin, z, float2(uv12.x, sigma<0?0:1)));
-        outStream.Append(GenerateVertex(prev, z, float2(uv12.x, sigma<0?1:0)));
-        outStream.Append(GenerateVertex(np, z, float2(uv12.x, sigma<0?1:0)));
+        outStream.Append(GenerateVertex(float3(origin, z), float2(uv12.x, sigma<0?0:1), vin));
+        outStream.Append(GenerateVertex(float3(prev, z)  , float2(uv12.x, sigma<0?1:0), vin));
+        outStream.Append(GenerateVertex(float3(np, z)    , float2(uv12.x, sigma<0?1:0), vin));
         outStream.RestartStrip();
         prev = np;
     }
 }
 
-void GenerateCorner(inout TriangleStream<PSType> outStream, float3 p0, float3 p1, float3 p2, float3 p3, float2 width, float2 uv12,float angleThreshold = 0.5f, int cornerDivision = 4)
+void GenerateCorner(inout TriangleStream<VertexOut> outStream, float3 p0, float3 p1, float3 p2, float3 p3, float2 width, float2 uv12, VertexIn vin, float angleThreshold = 0.5f, int cornerDivision = 4)
 {
-    GenerateCornerPoint(outStream, p0, p1, p2, width.x, p1.z, uv12.xy, angleThreshold, cornerDivision);
-    GenerateCornerPoint(outStream, p3, p2, p1, width.y, p1.z, uv12.yx, angleThreshold, cornerDivision);
+    GenerateCornerPoint(outStream, p0, p1, p2, width.x, p1.z, uv12.xy, vin, angleThreshold, cornerDivision);
+    GenerateCornerPoint(outStream, p3, p2, p1, width.y, p1.z, uv12.yx, vin, angleThreshold, cornerDivision);
 }
 
