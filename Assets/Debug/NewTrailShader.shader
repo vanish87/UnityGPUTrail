@@ -36,6 +36,7 @@ Shader "Unlit/NewTrailShader"
 
 	float _Thickness;
 	int _CornerDivision;
+	float _AngleThreshold;
 
 	static const int TrailThicknessGradient = 0;
 	static const int TrailHorizontalAlphaGradient = 1;
@@ -128,8 +129,8 @@ Shader "Unlit/NewTrailShader"
 		float4 t2 = SampleXLod(_TrailGradientTexture, float2(uv12.y, 0), TrailThicknessGradient);
 		float2 thickness = _Thickness * float2(t1.a, t2.a);
 
-        GenerateMainLine(outStream, p0, p1, p2, p3, thickness, uv12);
-        GenerateCorner(outStream, p0, p1, p2, p3, thickness, uv12, _CornerDivision);
+        GenerateMainLine(outStream, p0, p1, p2, p3, thickness, uv12, _AngleThreshold);
+        GenerateCorner(outStream, p0, p1, p2, p3, thickness, uv12,_AngleThreshold, _CornerDivision);
     }
 
 	fixed4 frag(g2f i) : SV_Target

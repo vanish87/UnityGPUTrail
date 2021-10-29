@@ -19,7 +19,7 @@ void Swap(inout float2 np1, inout float2 np2)
     np2 = temp;
 }
 
-void GenerateMainPoint(float2 p0, float2 p1, float2 p2, float width, out float2 np1, out float2 np2)
+void GenerateMainPoint(float2 p0, float2 p1, float2 p2, float width, float angleTheshold, out float2 np1, out float2 np2)
 {
     np1 = 0;
     np2 = 0;
@@ -38,7 +38,7 @@ void GenerateMainPoint(float2 p0, float2 p1, float2 p2, float width, out float2 
 
     float2 t = float2(0, sigma>0?LineBaseWidth:-LineBaseWidth);
     np1 = (p1 + xBasis * t.x + yBasis * width * t.y);
-    if(angle < 0.5f) np1 = (p1 - p);
+    if(angle < angleTheshold) np1 = (p1 - p);
     np2 = (p1 + p);
 
     if(sigma <= 0) Swap(np1, np2);
@@ -53,15 +53,15 @@ PSType GenerateVertex(float2 pos, float z, float2 uv)
     return p;
 }
 
-void GenerateMainLine(inout TriangleStream<PSType> outStream, float3 p0, float3 p1, float3 p2, float3 p3, float2 width12, float2 uv12)
+void GenerateMainLine(inout TriangleStream<PSType> outStream, float3 p0, float3 p1, float3 p2, float3 p3, float2 width12, float2 uv12, float angleTheshold = 0.5f)
 {
     float2 np1 = 0;
     float2 np2 = 0;
     float2 np3 = 0;
     float2 np4 = 0;
 
-    GenerateMainPoint(p0, p1, p2, width12.x, np1, np2);
-    GenerateMainPoint(p3, p2, p1, width12.y, np3, np4);
+    GenerateMainPoint(p0, p1, p2, width12.x, angleTheshold, np1, np2);
+    GenerateMainPoint(p3, p2, p1, width12.y, angleTheshold, np3, np4);
 
     //clock wise vertice for culling
     //   np1---np4
@@ -74,7 +74,7 @@ void GenerateMainLine(inout TriangleStream<PSType> outStream, float3 p0, float3 
     outStream.RestartStrip();
 }
 
-void GenerateCornerPoint(inout TriangleStream<PSType> outStream, float2 p0, float2 p1, float2 p2, float width, float z, float2 uv12, int cornerDivision)
+void GenerateCornerPoint(inout TriangleStream<PSType> outStream, float2 p0, float2 p1, float2 p2, float width, float z, float2 uv12, float angleThreshold, int cornerDivision)
 {
     float2 from = 0;
     float2 to = 0;
@@ -87,7 +87,7 @@ void GenerateCornerPoint(inout TriangleStream<PSType> outStream, float2 p0, floa
     float sigma = sign(dot(p01 + p21, normal));
     float angle = dot(normalize(p01), normalize(p21));
 
-    if(sigma == 0 || angle < 0.5f) return;
+    if(sigma == 0 || angle < angleThreshold) return;
 
     float2 xBasis = p2 - p1;
     float2 yBasis = GetNormal(p1, p2);
@@ -102,7 +102,7 @@ void GenerateCornerPoint(inout TriangleStream<PSType> outStream, float2 p0, floa
 
     if(sigma < 0) Swap(from, to);
 
-    int res = cornerDivision;
+    int res = max(cornerDivision, 2);
     float2 prev = from;
     for(int i = 0 ; i < res; ++i)
     {
@@ -120,9 +120,9 @@ void GenerateCornerPoint(inout TriangleStream<PSType> outStream, float2 p0, floa
     }
 }
 
-void GenerateCorner(inout TriangleStream<PSType> outStream, float3 p0, float3 p1, float3 p2, float3 p3, float2 width, float2 uv12, int cornerDivision = 4)
+void GenerateCorner(inout TriangleStream<PSType> outStream, float3 p0, float3 p1, float3 p2, float3 p3, float2 width, float2 uv12,float angleThreshold = 0.5f, int cornerDivision = 4)
 {
-    GenerateCornerPoint(outStream, p0, p1, p2, width.x, p1.z, uv12.xy, cornerDivision);
-    GenerateCornerPoint(outStream, p3, p2, p1, width.y, p1.z, uv12.yx, cornerDivision);
+    GenerateCornerPoint(outStream, p0, p1, p2, width.x, p1.z, uv12.xy, angleThreshold, cornerDivision);
+    GenerateCornerPoint(outStream, p3, p2, p1, width.y, p1.z, uv12.yx, angleThreshold, cornerDivision);
 }
 
