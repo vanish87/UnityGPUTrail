@@ -35,8 +35,7 @@ Shader "Unlit/NewTrailShader"
 	int _TrailDataCount;
 
 	float _Thickness;
-	float _MiterLimit;
-	int _zScale;
+	int _CornerDivision;
 
 	static const int TrailThicknessGradient = 0;
 	static const int TrailHorizontalAlphaGradient = 1;
@@ -113,7 +112,7 @@ Shader "Unlit/NewTrailShader"
 
 
 
-	[maxvertexcount(10)]
+	[maxvertexcount(64)]
 	void geom(point v2g p[1], inout TriangleStream<g2f> outStream)
 	{
 		g2f pIn = (g2f)0;
@@ -130,7 +129,7 @@ Shader "Unlit/NewTrailShader"
 		float2 thickness = _Thickness * float2(t1.a, t2.a);
 
         GenerateMainLine(outStream, p0, p1, p2, p3, thickness, uv12);
-        GenerateCorner(outStream, p0, p1, p2, p3, thickness, uv12);
+        GenerateCorner(outStream, p0, p1, p2, p3, thickness, uv12, _CornerDivision);
     }
 
 	fixed4 frag(g2f i) : SV_Target

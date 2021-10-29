@@ -74,7 +74,7 @@ void GenerateMainLine(inout TriangleStream<PSType> outStream, float3 p0, float3 
     outStream.RestartStrip();
 }
 
-void GenerateCornerPoint(inout TriangleStream<PSType> outStream, float2 p0, float2 p1, float2 p2, float width, float z, float2 uv12)
+void GenerateCornerPoint(inout TriangleStream<PSType> outStream, float2 p0, float2 p1, float2 p2, float width, float z, float2 uv12, int cornerDivision)
 {
     float2 from = 0;
     float2 to = 0;
@@ -102,28 +102,27 @@ void GenerateCornerPoint(inout TriangleStream<PSType> outStream, float2 p0, floa
 
     if(sigma < 0) Swap(from, to);
 
-    outStream.Append(GenerateVertex(origin, z, float2(uv12.x, sigma<0?0:1)));
-    outStream.Append(GenerateVertex(from, z, float2(uv12.x, sigma<0?1:0)));
-    outStream.Append(GenerateVertex(to, z, float2(uv12.x, sigma<0?1:0)));
-    outStream.RestartStrip();
+    int res = cornerDivision;
+    float2 prev = from;
+    for(int i = 0 ; i < res; ++i)
+    {
+        float dt = 1.0f * i / (res-1);
+        float2 dir = lerp(from, to, 1.0f * i / (res-1)) - origin;
+        float flen = length(from-origin);
+        float tlen = length(to-origin);
+        float rlen = lerp(flen, tlen, dt);
+        float2 np = origin + normalize(dir) * rlen;
+        outStream.Append(GenerateVertex(origin, z, float2(uv12.x, sigma<0?0:1)));
+        outStream.Append(GenerateVertex(prev, z, float2(uv12.x, sigma<0?1:0)));
+        outStream.Append(GenerateVertex(np, z, float2(uv12.x, sigma<0?1:0)));
+        outStream.RestartStrip();
+        prev = np;
+    }
 }
 
-void GenerateCorner(inout TriangleStream<PSType> outStream, float3 p0, float3 p1, float3 p2, float3 p3, float2 width, float2 uv12)
+void GenerateCorner(inout TriangleStream<PSType> outStream, float3 p0, float3 p1, float3 p2, float3 p3, float2 width, float2 uv12, int cornerDivision = 4)
 {
-    GenerateCornerPoint(outStream, p0, p1, p2, width.x, p1.z, uv12.xy);
-    GenerateCornerPoint(outStream, p3, p2, p1, width.y, p1.z, uv12.yx);
-    
-    // var res = 8;
-    // foreach(var i in Enumerable.Range(0, res))
-    // {
-    //     var dt = 1.0f * i / (res-1);
-    //     var dir = math.lerp(from, to, 1.0f * i / (res-1)) - origin;
-    //     var flen = math.length(from-origin);
-    //     var tlen = math.length(to-origin);
-    //     var rlen = math.lerp(flen, tlen, dt);
-    //     var np = origin + math.normalize(dir) * rlen;
-    //     ret.Add(np);
-    // }
-    // ret.Add(to);
+    GenerateCornerPoint(outStream, p0, p1, p2, width.x, p1.z, uv12.xy, cornerDivision);
+    GenerateCornerPoint(outStream, p3, p2, p1, width.y, p1.z, uv12.yx, cornerDivision);
 }
 
