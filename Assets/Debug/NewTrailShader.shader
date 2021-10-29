@@ -119,13 +119,6 @@ Shader "Unlit/NewTrailShader"
 		return o;
 	}
 
-    inline float4 Generate(float4 pos)
-    {
-		// return pos;
-        return mul(UNITY_MATRIX_P, pos);
-    }
-
-
 
 	[maxvertexcount(64)]
 	void geom(point v2g p[1], inout TriangleStream<g2f> outStream)
