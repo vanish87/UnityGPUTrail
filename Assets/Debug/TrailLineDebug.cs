@@ -17,8 +17,11 @@ namespace GPUTrail
 			public bool mouseDrag = false;
 			public float mouseDragDistanceThreshold = 0.1f;
 			[Shader(Name = "_Thickness")] public float thickness = 0.1f;
-			[Shader(Name = "_MiterLimit")] public float miterLimit = 0.75f;
-			[Shader(Name = "_zScale")] public bool zScale = true;
+			[Shader(Name = "_CornerDivision")] public int cornerDivision = 4;
+			// cos(angle) value for corner division
+			// -1 for always division
+			// 1 for never division
+			[Shader(Name = "_AngleThreshold")] public float angleThreshold = 0.5f;
 			[Shader(Name = "_TrailData")] public GPUBufferVariable<float4> trailGPUData = new GPUBufferVariable<float4>();
 			
 			public List<Gradient> gradients = new List<Gradient>();
