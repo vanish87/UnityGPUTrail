@@ -5,6 +5,8 @@ GPUTrail with
 - none-overlap alpha blending
 - triangle generation for corner
 
+![](Gifs\trail_geo.gif)
+
 ![](Gifs/trail_debug.png)
 
 ![](Gifs/trail_drag.gif)
