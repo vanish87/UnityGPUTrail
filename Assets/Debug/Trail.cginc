@@ -1,6 +1,6 @@
 
 static const float LineBaseWidth = 0.5f;
-static const float MaxLineWidth = 1;
+static const float MaxLineWidth = 0.5;
 
 float2 GetNormal(float2 a, float2 b, float2 c)
 {
